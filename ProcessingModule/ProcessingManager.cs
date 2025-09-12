@@ -77,7 +77,8 @@ namespace ProcessingModule
         /// <param name="value">The value.</param>
         private void ExecuteAnalogCommand(IConfigItem configItem, ushort transactionId, byte remoteUnitAddress, ushort pointAddress, int value)
         {
-            ModbusWriteCommandParameters p = new ModbusWriteCommandParameters(6, (byte)ModbusFunctionCode.WRITE_SINGLE_REGISTER, pointAddress, (ushort)value, transactionId, remoteUnitAddress);
+            ushort rawValue = eguConverter.ConvertToRaw(configItem.ScaleFactor,configItem.Deviation,value);
+            ModbusWriteCommandParameters p = new ModbusWriteCommandParameters(6, (byte)ModbusFunctionCode.WRITE_SINGLE_REGISTER, pointAddress, rawValue, transactionId, remoteUnitAddress);
             IModbusFunction fn = FunctionFactory.CreateModbusFunction(p);
             this.functionExecutor.EnqueueCommand(fn);
         }
@@ -127,6 +128,7 @@ namespace ProcessingModule
         /// <param name="newValue">The new value.</param>
         private void ProcessDigitalPoint(IDigitalPoint point, ushort newValue)
         {
+            point.Alarm = alarmProcessor.GetAlarmForDigitalPoint(point.RawValue, point.ConfigItem);
             point.RawValue = newValue;
             point.Timestamp = DateTime.Now;
             point.State = (DState)newValue;
@@ -140,6 +142,8 @@ namespace ProcessingModule
         /// <param name="newValue">The new value.</param>
         private void ProcessAnalogPoint(IAnalogPoint point, ushort newValue)
         {
+            point.EguValue = eguConverter.ConvertToEGU(point.ConfigItem.ScaleFactor, point.ConfigItem.Deviation, newValue);
+            point.Alarm = alarmProcessor.GetAlarmForAnalogPoint(point.EguValue,point.ConfigItem);
             point.RawValue = newValue;
             point.Timestamp = DateTime.Now;
         }

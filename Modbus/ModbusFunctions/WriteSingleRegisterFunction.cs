@@ -24,7 +24,7 @@ namespace Modbus.ModbusFunctions
         /// <inheritdoc />
         public override byte[] PackRequest()
         {
-            //TO DO: IMPLEMENT
+            
             byte[] request = new byte[12];
 
             short transactionId = IPAddress.HostToNetworkOrder((short)CommandParameters.TransactionId);
@@ -74,7 +74,7 @@ namespace Modbus.ModbusFunctions
             ushort adress = BitConverter.ToUInt16(new byte[2] { tempAdress[1], tempAdress[0] }, 0);
 
             tempValue[0] = response[10];
-            tempValue[1] = response[1];
+            tempValue[1] = response[11];
 
             ushort value = BitConverter.ToUInt16(new byte[2] { tempValue[1], tempValue[0] }, 0);
 
