@@ -50,8 +50,8 @@ namespace Modbus.ModbusFunctions
             request[3] = BytesProtocolId[1];
             request[4] = BytesLength[0];
             request[5] = BytesLength[1];
-            request[6] = (byte)CommandParameters.UnitId;
-            request[7] = (byte)CommandParameters.FunctionCode;
+            request[6] = CommandParameters.UnitId;
+            request[7] = CommandParameters.FunctionCode;
             request[8] = BytesRegistertAddres[0];
             request[9] = BytesRegistertAddres[1];
             request[10] = BytesRegisterValue[0];

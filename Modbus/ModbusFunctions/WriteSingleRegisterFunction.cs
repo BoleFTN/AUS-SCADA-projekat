@@ -20,42 +20,28 @@ namespace Modbus.ModbusFunctions
         {
             CheckArguments(MethodBase.GetCurrentMethod(), typeof(ModbusWriteCommandParameters));
         }
-
+        
         /// <inheritdoc />
         public override byte[] PackRequest()
         {
-            
+            ModbusWriteCommandParameters writeParams = CommandParameters as ModbusWriteCommandParameters;
+
             byte[] request = new byte[12];
 
-            short transactionId = IPAddress.HostToNetworkOrder((short)CommandParameters.TransactionId);
-            byte[] BytesTransactionId = BitConverter.GetBytes(transactionId);
-
-            short ProtocolId = IPAddress.HostToNetworkOrder((short)CommandParameters.ProtocolId);
-            byte[] BytesProtocolId = BitConverter.GetBytes(ProtocolId);
-
-            short length = IPAddress.HostToNetworkOrder((short)CommandParameters.Length);
-            byte[] BytesLength = BitConverter.GetBytes(length);
-
-            //ovde se razlikuje kreiranje requesta
-            ModbusWriteCommandParameters writeCP = (ModbusWriteCommandParameters)this.CommandParameters;
-            short RegisterAddress = IPAddress.HostToNetworkOrder((short)writeCP.OutputAddress);
-            byte[] BytesRegistertAddres = BitConverter.GetBytes(RegisterAddress);
-
-            short RegisterValue = IPAddress.HostToNetworkOrder((short)writeCP.Value);
-            byte[] BytesRegisterValue = BitConverter.GetBytes(RegisterValue);
-
-            request[0] = BytesTransactionId[0];
-            request[1] = BytesTransactionId[1];
-            request[2] = BytesProtocolId[0];
-            request[3] = BytesProtocolId[1];
-            request[4] = BytesLength[0];
-            request[5] = BytesLength[1];
-            request[6] = (byte)CommandParameters.UnitId;
-            request[7] = (byte)CommandParameters.FunctionCode;
-            request[8] = BytesRegistertAddres[0];
-            request[9] = BytesRegistertAddres[1];
-            request[10] = BytesRegisterValue[0];
-            request[11] = BytesRegisterValue[1];
+            // Transaction ID (2 bajta)
+            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)writeParams.TransactionId)), 0, request, 0, 2);
+            // Protocol ID (2 bajta)  
+            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)writeParams.ProtocolId)), 0, request, 2, 2);
+            // Length (2 bajta)
+            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)writeParams.Length)), 0, request, 4, 2);
+            // Unit ID (1 bajt)
+            request[6] = writeParams.UnitId;
+            // Function Code (1 bajt)
+            request[7] = writeParams.FunctionCode;
+            // Register Address (2 bajta)
+            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)writeParams.OutputAddress)), 0, request, 8, 2);
+            // Register Value (2 bajta)
+            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)writeParams.Value)), 0, request, 10, 2);
 
             return request;
         }
@@ -71,12 +57,12 @@ namespace Modbus.ModbusFunctions
             tempAdress[0] = response[8];
             tempAdress[1] = response[9];
 
-            ushort adress = BitConverter.ToUInt16(new byte[2] { tempAdress[1], tempAdress[0] }, 0);
+            ushort adress = BitConverter.ToUInt16(new byte[2] { tempAdress[0], tempAdress[1] }, 0);
 
             tempValue[0] = response[10];
             tempValue[1] = response[11];
 
-            ushort value = BitConverter.ToUInt16(new byte[2] { tempValue[1], tempValue[0] }, 0);
+            ushort value = BitConverter.ToUInt16(new byte[2] { tempValue[0], tempValue[1] }, 0);
 
             values.Add(new Tuple<PointType, ushort>(PointType.ANALOG_OUTPUT, adress),value);
 
