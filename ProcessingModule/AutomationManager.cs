@@ -1,5 +1,6 @@
 ﻿using Common;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 
 namespace ProcessingModule
@@ -60,10 +61,64 @@ namespace ProcessingModule
 
 		private void AutomationWorker_DoWork()
 		{
-			//while (!disposedValue)
-			//{
-			//}
-		}
+			EGUConverter eguConverter = new EGUConverter();
+			PointIdentifier analogOut = new PointIdentifier(PointType.ANALOG_OUTPUT, 1000);
+			PointIdentifier digitalOn = new PointIdentifier(PointType.DIGITAL_OUTPUT, 3000);
+			PointIdentifier digitalOff = new PointIdentifier(PointType.DIGITAL_OUTPUT, 3001);
+			PointIdentifier digitalObstacle = new PointIdentifier(PointType.DIGITAL_INPUT, 2000);
+            List<PointIdentifier> pointList = new List<PointIdentifier> { analogOut, digitalOn, digitalOff,digitalObstacle };
+			while (!disposedValue)
+			{
+				List<IPoint> points = storage.GetPoints(pointList);
+				int initValue = (int)eguConverter.ConvertToRaw(points[0].ConfigItem.ScaleFactor, points[0].ConfigItem.Deviation, points[0].RawValue);
+				int value = initValue;
+
+				int OnMoveInit = (int)eguConverter.ConvertToRaw(points[1].ConfigItem.ScaleFactor, points[1].ConfigItem.Deviation, points[1].ConfigItem.DefaultValue);
+				int OnCloseInit = (int)eguConverter.ConvertToRaw(points[2].ConfigItem.ScaleFactor, points[2].ConfigItem.Deviation, points[2].ConfigItem.DefaultValue);
+
+				int OnMove = OnMoveInit;
+				int OnClose = OnCloseInit;
+
+				if (points[1].RawValue == 1)
+				{
+					value += 10;
+				}
+				if (points[2].RawValue == 1)
+				{
+					value -= 10;
+				}
+				if (points[3].RawValue == 1)
+				{
+					OnClose = 1;
+					OnMove = 0;
+				}
+				if (value != initValue)
+				{
+					value = (int)eguConverter.ConvertToRaw(points[0].ConfigItem.ScaleFactor, points[0].ConfigItem.Deviation, eguConverter.ConvertToEGU(points[0].ConfigItem.ScaleFactor, points[0].ConfigItem.Deviation, (ushort)value));
+					processingManager.ExecuteWriteCommand(points[0].ConfigItem, configuration.GetTransactionId(), configuration.UnitAddress, 1000, value);
+				}
+				if (OnMove != OnMoveInit)
+				{
+                    processingManager.ExecuteWriteCommand(points[1].ConfigItem, configuration.GetTransactionId(), configuration.UnitAddress, 3000, OnClose);
+                }
+				if (OnClose != OnCloseInit)
+				{
+					processingManager.ExecuteWriteCommand(points[2].ConfigItem, configuration.GetTransactionId(), configuration.UnitAddress, 3001, OnClose);
+				}
+
+				if (value > points[0].ConfigItem.HighLimit) {
+					if (points[0].RawValue != 600 && points[0].RawValue < 600)
+                    processingManager.ExecuteWriteCommand(points[1].ConfigItem, configuration.GetTransactionId(), configuration.UnitAddress, 3000, 0);
+                }
+				if (value < points[0].ConfigItem.LowLimit)
+				{
+					if (points[0].RawValue != 20 && points[0].RawValue >20)
+                    processingManager.ExecuteWriteCommand(points[2].ConfigItem, configuration.GetTransactionId(), configuration.UnitAddress, 3001, 0);
+                }
+
+				automationTrigger.WaitOne(delayBetweenCommands);
+            }
+        }
 
 		#region IDisposable Support
 		private bool disposedValue = false; // To detect redundant calls
