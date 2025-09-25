@@ -24,38 +24,25 @@ namespace Modbus.ModbusFunctions
         /// <inheritdoc />
         public override byte[] PackRequest()
         {
-            
+
+            ModbusWriteCommandParameters writeParams = CommandParameters as ModbusWriteCommandParameters;
+
             byte[] request = new byte[12];
 
-            short transactionId = IPAddress.HostToNetworkOrder((short)CommandParameters.TransactionId);
-            byte[] BytesTransactionId = BitConverter.GetBytes(transactionId);
-
-            short ProtocolId = IPAddress.HostToNetworkOrder((short)CommandParameters.ProtocolId);
-            byte[] BytesProtocolId = BitConverter.GetBytes(ProtocolId);
-
-            short length = IPAddress.HostToNetworkOrder((short)CommandParameters.Length);
-            byte[] BytesLength = BitConverter.GetBytes(length);
-
-            //ovde se razlikuje kreiranje requesta
-            ModbusWriteCommandParameters writeCP = (ModbusWriteCommandParameters)this.CommandParameters;
-            short RegisterAddress = IPAddress.HostToNetworkOrder((short)writeCP.OutputAddress);
-            byte[] BytesRegistertAddres = BitConverter.GetBytes(RegisterAddress);
-
-            short RegisterValue = IPAddress.HostToNetworkOrder((short)writeCP.Value);
-            byte[] BytesRegisterValue = BitConverter.GetBytes(RegisterValue);
-
-            request[0] = BytesTransactionId[0];
-            request[1] = BytesTransactionId[1];
-            request[2] = BytesProtocolId[0];
-            request[3] = BytesProtocolId[1];
-            request[4] = BytesLength[0];
-            request[5] = BytesLength[1];
-            request[6] = CommandParameters.UnitId;
-            request[7] = CommandParameters.FunctionCode;
-            request[8] = BytesRegistertAddres[0];
-            request[9] = BytesRegistertAddres[1];
-            request[10] = BytesRegisterValue[0];
-            request[11] = BytesRegisterValue[1];
+            // Transaction ID 
+            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)writeParams.TransactionId)), 0, request, 0, 2);
+            // Protocol ID 
+            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)writeParams.ProtocolId)), 0, request, 2, 2);
+            // Length 
+            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)writeParams.Length)), 0, request, 4, 2);
+            // Unit ID 
+            request[6] = writeParams.UnitId;
+            // Function Code 
+            request[7] = writeParams.FunctionCode;
+            // Register Address 
+            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)writeParams.OutputAddress)), 0, request, 8, 2);
+            // Register Value
+            Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)writeParams.Value)), 0, request, 10, 2);
 
             return request;
         }

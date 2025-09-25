@@ -70,11 +70,11 @@ namespace ProcessingModule
 			while (!disposedValue)
 			{
 				List<IPoint> points = storage.GetPoints(pointList);
-				int initValue = (int)eguConverter.ConvertToRaw(points[0].ConfigItem.ScaleFactor, points[0].ConfigItem.Deviation, points[0].RawValue);
+				int initValue = (int)eguConverter.ConvertToEGU(points[0].ConfigItem.ScaleFactor, points[0].ConfigItem.Deviation, points[0].RawValue);
 				int value = initValue;
 
-				int OnMoveInit = (int)eguConverter.ConvertToRaw(points[1].ConfigItem.ScaleFactor, points[1].ConfigItem.Deviation, points[1].ConfigItem.DefaultValue);
-				int OnCloseInit = (int)eguConverter.ConvertToRaw(points[2].ConfigItem.ScaleFactor, points[2].ConfigItem.Deviation, points[2].ConfigItem.DefaultValue);
+				int OnMoveInit = (int)eguConverter.ConvertToEGU(points[1].ConfigItem.ScaleFactor, points[1].ConfigItem.Deviation, points[1].ConfigItem.DefaultValue);
+				int OnCloseInit = (int)eguConverter.ConvertToEGU(points[2].ConfigItem.ScaleFactor, points[2].ConfigItem.Deviation, points[2].ConfigItem.DefaultValue);
 
 				int OnMove = OnMoveInit;
 				int OnClose = OnCloseInit;
@@ -92,14 +92,17 @@ namespace ProcessingModule
 					OnClose = 1;
 					OnMove = 0;
 				}
+                /*
 				if (value != initValue)
 				{
 					value = (int)eguConverter.ConvertToRaw(points[0].ConfigItem.ScaleFactor, points[0].ConfigItem.Deviation, eguConverter.ConvertToEGU(points[0].ConfigItem.ScaleFactor, points[0].ConfigItem.Deviation, (ushort)value));
-					processingManager.ExecuteWriteCommand(points[0].ConfigItem, configuration.GetTransactionId(), configuration.UnitAddress, 1000, value);
+					processingManager.ExecuteWriteCommand(points[0].ConfigItem, configuration.GetTransactionId(),configuration.UnitAddress,1000,value);
 				}
+                
+                
 				if (OnMove != OnMoveInit)
 				{
-                    processingManager.ExecuteWriteCommand(points[1].ConfigItem, configuration.GetTransactionId(), configuration.UnitAddress, 3000, OnClose);
+                    processingManager.ExecuteWriteCommand(points[1].ConfigItem, configuration.GetTransactionId(), configuration.UnitAddress, 3000, OnMove);
                 }
 				if (OnClose != OnCloseInit)
 				{
@@ -115,8 +118,8 @@ namespace ProcessingModule
 					if (points[0].RawValue != 20 && points[0].RawValue >20)
                     processingManager.ExecuteWriteCommand(points[2].ConfigItem, configuration.GetTransactionId(), configuration.UnitAddress, 3001, 0);
                 }
-
-				automationTrigger.WaitOne(delayBetweenCommands);
+				*/
+                automationTrigger.WaitOne(delayBetweenCommands);
             }
         }
 

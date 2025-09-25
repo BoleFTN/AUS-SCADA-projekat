@@ -28,19 +28,19 @@ namespace Modbus.ModbusFunctions
 
             byte[] request = new byte[12];
 
-            // Transaction ID (2 bajta)
+            // Transaction ID 
             Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)writeParams.TransactionId)), 0, request, 0, 2);
-            // Protocol ID (2 bajta)  
+            // Protocol ID 
             Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)writeParams.ProtocolId)), 0, request, 2, 2);
-            // Length (2 bajta)
+            // Length 
             Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)writeParams.Length)), 0, request, 4, 2);
-            // Unit ID (1 bajt)
+            // Unit ID 
             request[6] = writeParams.UnitId;
-            // Function Code (1 bajt)
+            // Function Code 
             request[7] = writeParams.FunctionCode;
-            // Register Address (2 bajta)
+            // Register Address 
             Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)writeParams.OutputAddress)), 0, request, 8, 2);
-            // Register Value (2 bajta)
+            // Register Value
             Buffer.BlockCopy(BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)writeParams.Value)), 0, request, 10, 2);
 
             return request;
